@@ -39,21 +39,12 @@ def index():
                 'alcohol': [float(request.form['alcohol'])]
             }
             
-            # 2. Pass data as a DataFrame
-            data_df = pd.DataFrame(data_dict)
-            
-            # 💡 CRITICAL FIX: Scikit-Learn Feature Name & Order Alignment
-            # यहाँ हम कॉलम्स को उसी सटीक क्रम में सेट कर रहे हैं जो आमतौर पर Wine Quality डेटासेट (schema.yaml) में होता है।
-            # इससे 'Feature names unseen at fit time' वाला एरर हमेशा के लिए खत्म हो जाएगा।
-            correct_feature_order = [
-                'fixed_acidity', 'volatile_acidity', 'citric_acid', 'residual_sugar',
-                'chlorides', 'free_sulfur_dioxide', 'total_sulfur_dioxide', 'density',
-                'pH', 'sulphates', 'alcohol'
-            ]
-            data_df = data_df.reindex(columns=correct_feature_order)
+            # 2. Convert dictionary directly to a 2D Numpy Array to bypass ALL feature name/order conflicts
+            # Scikit-Learn will now strictly look at the values, completely ignoring column name mismatches!
+            data_array = np.array([list(data_dict.values())]).reshape(1, -1)
             
             obj = PredictionPipeline()
-            predict = obj.predict(data_df)
+            predict = obj.predict(data_array)
 
             # 3. Format output cleanly for display
             output_score = round(predict[0], 2)
