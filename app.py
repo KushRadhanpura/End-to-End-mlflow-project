@@ -39,8 +39,18 @@ def index():
                 'alcohol': [float(request.form['alcohol'])]
             }
             
-            # 2. Pass data as a DataFrame to preserve feature column headers for the pipeline
+            # 2. Pass data as a DataFrame
             data_df = pd.DataFrame(data_dict)
+            
+            # 💡 CRITICAL FIX: Scikit-Learn Feature Name & Order Alignment
+            # यहाँ हम कॉलम्स को उसी सटीक क्रम में सेट कर रहे हैं जो आमतौर पर Wine Quality डेटासेट (schema.yaml) में होता है।
+            # इससे 'Feature names unseen at fit time' वाला एरर हमेशा के लिए खत्म हो जाएगा।
+            correct_feature_order = [
+                'fixed_acidity', 'volatile_acidity', 'citric_acid', 'residual_sugar',
+                'chlorides', 'free_sulfur_dioxide', 'total_sulfur_dioxide', 'density',
+                'pH', 'sulphates', 'alcohol'
+            ]
+            data_df = data_df.reindex(columns=correct_feature_order)
             
             obj = PredictionPipeline()
             predict = obj.predict(data_df)
